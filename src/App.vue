@@ -81,7 +81,7 @@
       </div>
     </div>
     <div
-      :class="'rec-class ' + [rec ? 'news-class' : 'studio-class']"
+      :class="'rec-class ' + [rec ? 'studio-class' : 'news-class']"
       v-show="page == 8"
     ></div>
   </div>
