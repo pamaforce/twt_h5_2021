@@ -336,7 +336,7 @@ export default {
   bottom: 15px;
   background-image: url("./assets/img-button.png");
   background-size: 100% 100%;
-  width: 320px;
+  width: 85%;
   height: 80px;
 }
 .lake-class {
@@ -975,6 +975,9 @@ export default {
   .center-class {
     width: 375px;
   }
+  .button-class {
+    width: 320px;
+  }
   .q4-class {
     background-size: 375px 100%;
   }
@@ -1006,6 +1009,9 @@ export default {
 @media screen and (min-width: 450px) {
   .center-class {
     width: 375px;
+  }
+  .button-class {
+    width: 320px;
   }
   .q4-class {
     background-size: 375px 100%;
