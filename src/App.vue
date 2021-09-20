@@ -12,8 +12,6 @@
         :class="['cube-right-class' + (statue ? ' rightcubemove' : '')]"
       ></div>
       <div class="text-class"></div>
-      <!-- <div class="arrow-class"></div>
-      <div class="logo-class"></div> -->
       <div class="logo-class"></div>
       <div class="start-class" @click="start"></div>
       <div :class="['arrow-class' + (statue ? ' arrowmove' : '')]"></div>
@@ -79,25 +77,42 @@
       <div class="back-class" @click="cancelChoice"></div>
     </div>
     <div class="result-class" v-show="page == 7">
-      <div :class="'results-class ' + [results[ans]]">
+      <div class="results-class" id="captureId">
+        <img :src="results[ans]" style="width: 100%; height: 100%" />
         <div class="name-class">{{ userName }}</div>
-        <div class="qrcode-class"></div>
-        <div class="twt-class" @click="page++"></div>
+        <div class="qrcode-class">
+          <img src="./assets/QRcode.png" style="width: 100%; height: 100%" />
+        </div>
+        <div
+          :class="'twt-class' + [subStatue ? ' twtmove-class' : '']"
+          @click="toEnd"
+        >
+          <img src="./assets/twt.png" style="width: 100%; height: 100%" />
+        </div>
       </div>
     </div>
-    <div
+    <img :src="dataURL" alt="share" v-show="page == 8" class="share-class" />
+    <!-- <div
       :class="'rec-class ' + [rec ? 'studio-class' : 'news-class']"
-      v-show="page == 8"
-    ></div>
+      v-show="page == 9"
+    ></div> -->
+    <my-music />
   </div>
 </template>
 
 <script>
-import { MessageBox } from "element-ui";
+import html2canvas from "html2canvas";
+import { MessageBox, Message } from "element-ui";
+import myMusic from "./music.vue";
 export default {
   name: "App",
+  components: {
+    myMusic,
+  },
   data: () => {
     return {
+      dataURL: "",
+      subStatue: false,
       showModal: false,
       statue: false,
       count: 0,
@@ -105,12 +120,13 @@ export default {
       page: -1,
       ans: 0,
       rec: 0,
+      ac: false,
       results: [
-        "lake-class",
-        "gym-class",
-        "canteen-class",
-        "library-class",
-        "room-class",
+        require("./assets/img-lake.png"),
+        require("./assets/img-gym.png"),
+        require("./assets/img-canteen.png"),
+        require("./assets/img-library.png"),
+        require("./assets/img-room.png"),
       ],
       choice: [],
       userName: "",
@@ -130,9 +146,10 @@ export default {
       }
     },
     count: function (val) {
-      if (val === 35) {
+      if (val === 33) {
+        this.ac = true;
         setTimeout(() => {
-          this.page++;
+          this.page = 0;
         }, 100);
       }
     },
@@ -143,8 +160,16 @@ export default {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
       }).then(({ value }) => {
-        this.userName = value;
-        this.page++;
+        if (value != null && value.trim() != "") {
+          this.userName = value.trim();
+          this.page++;
+        } else {
+          Message({
+            center: true,
+            type: "warning",
+            message: "请输入您的昵称方便我们为您生成您的专属地点哦(#^.^#)",
+          });
+        }
       });
     },
     pushChoice(index) {
@@ -165,10 +190,39 @@ export default {
         this.ans = this.choice[3] / 2;
       this.rec = this.choice[5] % 2;
       this.page++;
+      setTimeout(() => {
+        html2canvas(document.querySelector("#captureId"), {
+          scale: 3,
+        }).then((canvas) => {
+          console.log(canvas);
+          this.dataURL = canvas.toDataURL("image/jpeg");
+          this.page++;
+        });
+      }, 500);
+    },
+    toEnd() {
+      // html2canvas(document.querySelector("#captureId"), {
+      //   scale: 10,
+      // }).then((canvas) => {
+      //   let imgUrl = canvas.toDataURL("image/jpeg");
+      //   this.dataURL = imgUrl;
+      //   this.page++;
+      // });
+      // this.subStatue = true;
+      // setTimeout(() => {
+      //   this.page++;
+      // }, 1000);
     },
     preload() {
+      setTimeout(() => {
+        if (!this.ac && this.page == -1) this.page = 0;
+      }, 5000);
       let imgs = [
         require("./assets/logo-twt.png"),
+        require("./assets/img-text.png"),
+        require("./assets/twt-logo.png"),
+        require("./assets/start.png"),
+        require("./assets/arrow.png"),
         require("./assets/img-arrow.png"),
         require("./assets/img-back.png"),
         require("./assets/img-cover.png"),
@@ -194,22 +248,16 @@ export default {
         require("./assets/img-gym.png"),
         require("./assets/img-lake.png"),
         require("./assets/img-library.png"),
-        require("./assets/img-news.png"),
         require("./assets/img-room.png"),
-        require("./assets/img-studio.png"),
-        require("./assets/arrow.png"),
-        require("./assets/twt-logo.png"),
-        require("./assets/start.png"),
         require("./assets/twt.png"),
         require("./assets/QRcode.png"),
-        require("./assets/img-text.png"),
       ];
       for (let img of imgs) {
         let image = new Image();
         image.src = img;
         image.onload = () => {
           this.count++;
-          this.percent = Math.floor((this.count / 35) * 100);
+          this.percent = Math.floor((this.count / 33) * 100);
         };
       }
     },
@@ -222,6 +270,9 @@ export default {
   position: relative;
   text-align: center;
   overflow: hidden;
+  padding-bottom: 0;
+  padding-bottom: constant(safe-area-inset-bottom);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 .qrcode-class {
   position: absolute;
@@ -230,8 +281,6 @@ export default {
   width: 35px;
   height: 35px;
   border-radius: 4px;
-  background-image: url("./assets/QRcode.png");
-  background-size: 100% 100%;
 }
 .twt-class {
   position: absolute;
@@ -239,10 +288,15 @@ export default {
   bottom: 22px;
   width: 20px;
   height: 20px;
-  background-image: url("./assets/twt.png");
-  background-size: 100% 100%;
-  animation: twtani 0.5s ease infinite;
-  -webkit-animation: twtani 0.5s ease infinite;
+  /* animation: twtani 0.5s ease infinite;
+  -webkit-animation: twtani 0.5s ease infinite; */
+}
+/* .twtmove-class{
+
+} */
+.share-class {
+  width: 100%;
+  height: 100vh;
 }
 .loading-class {
   height: 100vh;
@@ -340,7 +394,6 @@ export default {
   transform: translateX(-50%);
   width: 100%;
   height: 100vh;
-  background-size: 100% 100%;
 }
 .rec-class {
   width: 100%;
@@ -350,12 +403,12 @@ export default {
   background-position: center;
   background-repeat: no-repeat;
 }
-.news-class {
+/* .news-class {
   background-image: url("./assets/img-news.png");
 }
 .studio-class {
   background-image: url("./assets/img-studio.png");
-}
+} */
 .name-class {
   text-align: center;
   overflow: hidden;
@@ -370,21 +423,7 @@ export default {
   left: 50%;
   transform: translateX(calc(-50% - 143px));
 }
-.lake-class {
-  background-image: url("./assets/img-lake.png");
-}
-.gym-class {
-  background-image: url("./assets/img-gym.png");
-}
-.canteen-class {
-  background-image: url("./assets/img-canteen.png");
-}
-.room-class {
-  background-image: url("./assets/img-room.png");
-}
-.library-class {
-  background-image: url("./assets/img-library.png");
-}
+
 .cube-left-class {
   position: absolute;
   left: -120px;
@@ -421,11 +460,12 @@ export default {
   width: 306px;
   height: 193px;
   position: absolute;
-  left: -306px;
+  left: 50%;
   top: 50%;
-  transform: translateY(calc(-50% - 50px));
-  animation: textin 1.5s ease 1;
-  -webkit-animation: textin 1.5s ease 1;
+  transform: translate(-50%, calc(-50% - 50px));
+  opacity: 0;
+  animation: textin 3s ease 1;
+  -webkit-animation: textin 3s ease 1;
   animation-fill-mode: forwards;
 }
 .arrow-class {
@@ -793,6 +833,11 @@ export default {
   top: 420px;
   left: 82px;
 }
+.el-message {
+  min-width: 250px;
+  width: 90%;
+  letter-spacing: 1px;
+}
 .el-message-box {
   width: 250px;
 }
@@ -840,15 +885,10 @@ export default {
 }
 @keyframes textin {
   0% {
-    left: -306px;
-  }
-  70% {
-    left: 50%;
-    transform: translateX(calc(-50% + 50px)) translateY(calc(-50% - 50px));
+    opacity: 0;
   }
   100% {
-    left: 50%;
-    transform: translateX(-50%) translateY(calc(-50% - 50px));
+    opacity: 1;
   }
 }
 @keyframes startani {
@@ -1037,6 +1077,7 @@ export default {
     background-size: 375px 100%;
   }
   .results-class,
+  .share-class,
   .q2-1-class,
   .q2-2-class,
   .q3-1-class,
@@ -1060,6 +1101,7 @@ export default {
     background-size: 375px 100%;
   }
   .results-class,
+  .share-class,
   .q2-1-class,
   .q2-2-class,
   .q3-1-class,
@@ -1081,6 +1123,7 @@ export default {
   .q5-class,
   .q6-class,
   .loading-class,
+  .share-class,
   .cover-class,
   .results-class,
   .q2-2-class,
@@ -1099,6 +1142,7 @@ export default {
   .q5-class,
   .q6-class,
   .loading-class,
+  .share-class,
   .cover-class,
   .results-class,
   .q2-2-class,
